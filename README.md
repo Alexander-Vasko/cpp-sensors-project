@@ -19,6 +19,21 @@
 
 Для коммуникации между потоками используются потокобезопасные очереди из [boost::thread](https://www.boost.org/doc/libs/1_83_0/doc/html/thread.html).
 
+# Ubuntu
+
+```bash
+apt update && apt install libboost-dev libboost-thread-dev nlohmann-json3-dev
+```
+
+## Сборка
+
+```bash
+git clone --recurse-submodules https://github.com/Alexander-Vasko/cpp-sencors-project.git
+cd cpp-sencors-project
+cmake -S . -B build
+cmake --build build -j $(nproc)
+```
+
 ## Архитектура
 
 Rest сервер использует выделенный пул потоков для обработки соединений. В примере описана наиболее похожая на требуемую
