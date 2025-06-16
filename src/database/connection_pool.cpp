@@ -1,4 +1,6 @@
 #include "connection_pool.h"
+#include <iostream>
+
 
 ConnectionPool::ConnectionPool(const std::string& host, int port, const std::string& database, size_t pool_size) {
     for (size_t i = 0; i < pool_size; ++i) {
@@ -41,8 +43,11 @@ void ConnectionPool::enqueueBatch(const std::vector<SensorData>& batch) {
 }
 
 void ConnectionPool::workerThread() {
-    // Каждый поток выбирает свой клиент по индексу
-    size_t index = std::hash<std::thread::id>{}(std::this_thread::get_id()) % clients_.size();
+    static thread_local size_t index = 0;
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        index = workers_.size() % clients_.size();
+    }
     auto& client = clients_[index];
 
     while (true) {
@@ -60,6 +65,9 @@ void ConnectionPool::workerThread() {
         }
 
         bool ok = client->insertBatch(batch);
-        // TODO: Логика обработки результата (retry, логгирование и т.д.)
+        if (!ok) {
+            std::cerr << "Failed to insert batch" << std::endl;
+        }
     }
 }
+
